@@ -42,3 +42,7 @@ dist/
 
 # Codex 세션 ID (로컬)
 .context/
+
+# 호스트 전용 (멤버에게 스포일러)
+docs/DECISIONS.md
+docs/WORKSHOP-FLOW.md
