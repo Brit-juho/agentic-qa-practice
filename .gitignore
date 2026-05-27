@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.log
+.npm/
+.eslintcache
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Outputs — 멤버가 생성한 리뷰 리포트는 .gitkeep 유지하되 내용은 commit 시 명시적
+# (멤버는 outputs/unified-review-<자기이름>.md를 직접 add)
+
+# Codex 세션 ID (로컬)
+.context/
