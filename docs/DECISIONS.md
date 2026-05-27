@@ -320,6 +320,17 @@
 - 영향 파일: `.claude/agents/consensus-synthesizer.md`
 - 되돌리기: 이전 4가지 버전 복귀
 
+### D42 — `/consensus-review` 인자 생략 시 현재 브랜치 자동 감지
+- 선택: 인자 없으면 `git branch --show-current` 사용 (이전: 하드코딩된 `feat/return-extend`)
+- 대안: 항상 인자 필수
+- 이유: 멤버가 *자기 작업 브랜치*에서 리뷰 돌릴 때 자연스러움. 트랩 브랜치 외 다른 PR도 같은 명령으로 검토 가능 (재사용성 ↑). 워크숍 외 실 운영에도 그대로 적용 가능.
+- 부수 안전장치:
+  - 현재 브랜치가 main이면 에러 (리뷰 대상 없음 안내)
+  - detached HEAD면 에러
+  - target == main이면 에러
+- 영향 파일: `.claude/commands/consensus-review.md`, `README.md`
+- 되돌리기: argument-hint를 `<target-branch> (기본값 feat/return-extend)`로 복원 + Step 1의 대상 해석 로직 단순화
+
 ### D41 — Confidence 표시 도입
 - 선택: 각 발견에 High/Medium/Low Confidence 명시
 - 대안: 단순 심각도만

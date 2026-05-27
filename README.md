@@ -112,18 +112,26 @@ git diff main...feat/return-extend
 ## Step 4 — 합의 리뷰 실행
 
 ```bash
+# 트랩 브랜치에 체크아웃돼 있어야 함 (Step 2)
+git branch --show-current   # → feat/return-extend 확인
+
 # Claude Code 진입
 claude
 
-# 슬래시 커맨드 한 번
+# 인자 없이 슬래시 커맨드 한 번 (현재 브랜치 자동 감지)
+> /consensus-review
+
+# 또는 명시적으로
 > /consensus-review feat/return-extend
 ```
 
 내부 동작:
-1. `git diff main...feat/return-extend` 계산
-2. `.claude/agents/` 안의 4개 리뷰어 병렬 발사 (Task 도구)
-3. 4개 결과를 합의 종합자에게 전달
-4. `outputs/unified-review-<git-user>.md` 로 저장
+1. *현재 브랜치* 자동 감지 (`git branch --show-current`) → 인자로 받았으면 그것 사용
+2. `git diff main...<현재브랜치>` + commit log + 파일 통계 수집
+3. `.claude/agents/` 안의 4개 리뷰어 병렬 발사 (Task 도구)
+   - 각 리뷰어에 PR 컨텍스트 + 프로젝트 컨벤션(CLAUDE.md, ARCHITECTURE.md) 전달
+4. 4개 결과를 합의 종합자에게 전달 (충돌 해결 + 우선순위 + 결합 시나리오 + 한 줄 위험 요약)
+5. `outputs/unified-review-<git-user>-<timestamp>.md` 로 저장 (기존 파일 *덮어쓰지 않음*)
 
 ---
 

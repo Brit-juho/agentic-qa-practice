@@ -1,39 +1,61 @@
 ---
-description: 합의 기반 코드 리뷰 — 풍부한 PR 컨텍스트로 4개 전문 리뷰어 병렬 발사 + 합의 종합. 비계획 발견 적극 유도.
-argument-hint: <target-branch> (기본값 feat/return-extend)
+description: 합의 기반 코드 리뷰 — 현재 브랜치(또는 지정된 브랜치)의 PR diff를 4개 전문 리뷰어가 병렬 검토 후 합의 종합 보고서 생성.
+argument-hint: [target-branch] (생략 시 현재 브랜치)
 ---
 
 # /consensus-review
 
-Tutorial 22 *합의 기반 코드 리뷰* 패턴을 한 명령으로 굴립니다. 각 리뷰어가 *PR diff뿐 아니라 commit 메시지·프로젝트 컨벤션·관련 코드 컨텍스트*까지 받아 깊이 있는 발견을 합니다.
+Tutorial 22 *합의 기반 코드 리뷰* 패턴을 한 명령으로 굴립니다. **현재 작업 중인 PR의 diff**(또는 명시한 브랜치)를 자동으로 잡아내고, 4개 전문 리뷰어가 *PR diff + commit 메시지 + 프로젝트 컨벤션 + 관련 코드 컨텍스트*를 받아 깊이 있는 발견을 합니다.
 
 ## 사용법
 
 ```
+# 가장 일반적 — 현재 작업 브랜치를 리뷰 대상으로
+/consensus-review
+
+# 다른 브랜치 명시 (메인에 머물면서 다른 브랜치 리뷰)
 /consensus-review feat/return-extend
 ```
 
-인자 생략 시 `feat/return-extend` 가정.
+**기본 동작**: 인자 생략 시 `git branch --show-current` 결과를 사용합니다. 즉 *지금 체크아웃된 브랜치 = 리뷰 대상*.
+
+**리뷰 대상 = 현재 브랜치 vs main**의 git diff. 이 diff에 대한 통합 리뷰 리포트를 `outputs/`에 *추가로* 작성합니다 (기존 파일 덮어쓰지 않음, 타임스탬프 분리).
 
 ---
 
 ## 너의 임무 (Claude)
 
-### Step 1 — 사전 점검
+### Step 1 — 사전 점검 + 대상 브랜치 해석
 
-순서대로 확인. 빠진 게 있으면 *어떤 게 빠졌는지 정확히* 안내 후 중단.
+순서대로 확인. 빠진 게 있으면 *정확히 무엇이 빠졌는지* 안내 후 중단.
 
-1. 인자로 받은 브랜치(`$1`, 없으면 `feat/return-extend`)가 존재하는가 — `git rev-parse --verify $1`
-2. `main` 브랜치가 존재하는가
-3. `.claude/agents/` 아래 5개 모두 있는가
+1. **대상 브랜치 해석**:
+   - `$1`이 주어지면 → `TARGET=$1`
+   - `$1`이 없으면 → `TARGET=$(git branch --show-current)`
+   - `TARGET`이 비어있으면 (detached HEAD 등) → 에러 + 안내 후 중단
+
+2. **TARGET이 main인지 확인**: 같으면 에러
+   ```
+   현재 브랜치가 main입니다. 리뷰할 PR/변경점이 없습니다.
+   작업 브랜치로 이동하거나 (`git checkout <branch>`) 인자로 명시하세요.
+   ```
+
+3. **TARGET 브랜치 존재 확인**: `git rev-parse --verify $TARGET`
+
+4. **main 브랜치 존재 확인**
+
+5. **`.claude/agents/` 아래 5개 모두 있는가**:
    - `security-reviewer.md` (호스트 샘플)
    - `consensus-synthesizer.md` (호스트 샘플)
    - `performance-analyst.md` (멤버 자작)
    - `test-coverage-reviewer.md` (멤버 자작)
    - `architecture-guardian.md` (멤버 자작)
-4. `outputs/` 디렉토리가 있는가 (없으면 생성)
 
-빠진 에이전트가 멤버 자작이면 `docs/AGENT-GUIDE.md` 와 `docs/AGENT-TEMPLATE.md` 참조 안내.
+6. **`outputs/` 디렉토리 확인** (없으면 생성)
+
+빠진 에이전트가 멤버 자작이면 `docs/AGENT-GUIDE.md`와 `docs/AGENT-TEMPLATE.md` 참조 안내.
+
+이후 모든 단계에서 `$TARGET`을 *변수로 사용*. `$1` 직접 참조 금지.
 
 ### Step 2 — PR 컨텍스트 수집 (강화)
 
@@ -41,16 +63,16 @@ Tutorial 22 *합의 기반 코드 리뷰* 패턴을 한 명령으로 굴립니�
 
 ```bash
 # 1) 변경 통계
-git diff main...$1 --stat
+git diff main...$TARGET --stat
 
 # 2) commit 목록 (PR의 *변경 의도*와 *발전 흐름* 파악)
-git log main..$1 --pretty=format:"%h %s%n%b%n---"
+git log main..$TARGET --pretty=format:"%h %s%n%b%n---"
 
 # 3) 변경된 파일 목록 (status별)
-git diff main...$1 --name-status
+git diff main...$TARGET --name-status
 
 # 4) 전체 diff
-git diff main...$1
+git diff main...$TARGET
 ```
 
 위 4개를 변수로 저장. diff가 0이면 중단. diff가 10000줄+이면 경고만 출력하고 진행.
@@ -66,12 +88,12 @@ Task 도구로 4개 sub-agent를 *병렬*로 발사. **반드시 한 메시지�
 *{axis}* 관점을 담당합니다.
 
 ## 리뷰 대상 PR
-브랜치: $1 → main
+브랜치: $TARGET → main
 변경 통계: [diff stat]
 변경된 파일: [name-status]
 
 ## PR의 의도와 발전 흐름 (commit 메시지)
-[git log main..$1 의 모든 commit 메시지 본문 통째]
+[git log main..$TARGET 의 모든 commit 메시지 본문 통째]
 
 ## 프로젝트 컨벤션 (반드시 참조)
 - `CLAUDE.md` — 프로젝트 전반 컨텍스트
@@ -80,7 +102,7 @@ Task 도구로 4개 sub-agent를 *병렬*로 발사. **반드시 한 메시지�
 - 위 파일들을 Read 도구로 직접 읽어서 컨벤션 위반을 식별하세요.
 
 ## 변경 사항 (diff)
-[git diff main...$1 전체]
+[git diff main...$TARGET 전체]
 
 ## 추가 컨텍스트 수집 권한
 필요하면 Grep/Read로 *변경 파일과 관련된 다른 파일*도 직접 확인하세요.
@@ -167,7 +189,7 @@ Write 도구로 통합 리포트를 `$OUTPUT_PATH`에 저장.
 ```
 ✓ 합의 기반 코드 리뷰 완료
 
-대상: main...$1
+대상: main...$TARGET
 변경: N파일, M줄, K commits
 리뷰어: 4 (security / performance / test / architecture)
 종합: consensus-synthesizer
