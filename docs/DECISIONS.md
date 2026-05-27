@@ -290,6 +290,44 @@
 
 ---
 
+## 워크숍 강화 결정 (D37~)
+
+### D37 — trap branch를 6개 semantic commit으로 분할
+- 선택: 단일 squash commit → 6개 semantic commit
+- 대안: 단일 commit 유지 / 더 잘게 (8~10개) 분할
+- 이유: 실제 PR 모양 — commit 메시지의 *발전 흐름*이 곧 PR의 *맥락*. 리뷰어 에이전트가 commit 메시지에서 *개발자 의도*를 읽고 *코드 실제*와 대조해서 비계획 발견 ↑.
+- 영향 파일: `feat/return-extend` 브랜치 (6 commits)
+- 되돌리기: `git reset --soft main && git commit -m "..."` 으로 squash
+
+### D38 — `/consensus-review` 슬래시 커맨드 강화
+- 선택: PR 컨텍스트(commit log) + 프로젝트 컨벤션 + 5가지 분석 차원을 각 리뷰어에 전달
+- 대안: 단순 diff만 전달 (기존)
+- 이유: diff만 보면 *표면적 발견*만 나옴. commit 메시지에서 의도 파악 → 의도와 코드의 *불일치* 검출. ARCHITECTURE.md 참조 → *컨벤션 위반* 검출. 5가지 차원 명시 → *비계획 발견 + 결합 시나리오* 검출.
+- 영향 파일: `.claude/commands/consensus-review.md`
+- 되돌리기: 이전 단순 버전으로 복귀 (`git show HEAD~1:.claude/commands/consensus-review.md`)
+
+### D39 — `security-reviewer` 강화
+- 선택: P1~P7 영역 체계화 + 결합 공격 시나리오 + Confidence 추가
+- 대안: 책 원본 프롬프트 유지
+- 이유: 단독 발견 평가의 한계 — 정보 노출 + XSS는 단독으론 High지만 *결합 시 Critical*. 합의 종합자가 결합 평가를 하려면 *각 리뷰어가 결합 가능성을 명시*해야 함.
+- 영향 파일: `.claude/agents/security-reviewer.md`
+- 되돌리기: 이전 단순 버전 복귀
+
+### D40 — `consensus-synthesizer` 7가지 의무로 확장 (기존 4 → 7)
+- 선택: 4가지(중복/충돌/우선/차단) + 3가지(결합 시나리오 / 비계획 발견 / 한 줄 위험 요약)
+- 대안: 책 원본 4가지만 유지
+- 이유: 종합자의 진짜 가치는 *통합 평가*. 단순 합산 + 4가지로는 *결합 시 폭증하는 위험* 못 잡음. *한 줄 위험 요약*은 머지 5초 결정 도구.
+- 영향 파일: `.claude/agents/consensus-synthesizer.md`
+- 되돌리기: 이전 4가지 버전 복귀
+
+### D41 — Confidence 표시 도입
+- 선택: 각 발견에 High/Medium/Low Confidence 명시
+- 대안: 단순 심각도만
+- 이유: 에이전트의 *추측성 발견*과 *명백한 발견*을 분리 → 종합자가 Low Confidence를 한 단계 강등 처리 → 과잉 경보 방지.
+- 영향 파일: `security-reviewer.md`, `consensus-synthesizer.md` (멤버 자작 에이전트는 자발적으로)
+
+---
+
 ## 미해결/향후 검토
 
 이 워크숍이 끝나고 호스트가 다음 회차 또는 다음 도메인을 추가할 때 고려할 사항.
