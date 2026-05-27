@@ -320,6 +320,16 @@
 - 영향 파일: `.claude/agents/consensus-synthesizer.md`
 - 되돌리기: 이전 4가지 버전 복귀
 
+### D43 — 위험 구역 자동 확장 (Smart Auto-Expansion) 도입
+- 선택: 리뷰어가 diff의 *변경 파일 종류*를 식별 후, 위험 구역(models / routers / services / auth / api client / config / 인터페이스 / 공통 유틸)에 해당하면 관련 파일을 Grep/Read로 자동 확장 검사
+- 대안:
+  - (A) Diff만 보기 (단순하지만 연쇄 영향 놓침)
+  - (B) 항상 전체 코드베이스 검사 (느림 + 노이즈)
+  - (C) 명시적 `--scope` 플래그 (인지 부담 ↑)
+- 이유: 시니어 엔지니어의 *변경 종류별 스코프 조정* 직관을 자동화. 80% PR(평범한 변경)은 그대로 빠름, 20% PR(인터페이스/모델/권한 변경)은 자동으로 깊이 확장. 사용자 부담 없이 깊이 확보.
+- 영향 파일: `.claude/commands/consensus-review.md` Step 3
+- 되돌리기: "위험 구역 자동 확장" 섹션 제거
+
 ### D42 — `/consensus-review` 인자 생략 시 현재 브랜치 자동 감지
 - 선택: 인자 없으면 `git branch --show-current` 사용 (이전: 하드코딩된 `feat/return-extend`)
 - 대안: 항상 인자 필수
