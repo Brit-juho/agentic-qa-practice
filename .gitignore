@@ -10,6 +10,8 @@ dist/
 build/
 .coverage
 htmlcov/
+# uv.lock은 commit함 (재현성). .python-version은 사용자 환경.
+.python-version
 
 # Node
 node_modules/

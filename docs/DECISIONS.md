@@ -258,6 +258,38 @@
 
 ---
 
+## 인프라 결정 (D33~)
+
+### D33 — Python 패키지 관리: uv
+- 선택: `uv` (Astral) + `[dependency-groups]` (PEP 735)
+- 대안: pip + venv (기존), poetry, hatch
+- 이유: 멤버 환경 세팅 30초 → 3초. `uv.lock`으로 재현성 보장. pyproject.toml은 표준 `[project]` 유지해서 pip 사용자도 호환.
+- 영향 파일: `backend/pyproject.toml`, `backend/uv.lock`, `backend/README.md`, `README.md` Quick Start
+- 되돌리기: `uv.lock` 삭제 + `dependency-groups`를 `optional-dependencies`로 변경 + 안내 문구 수정
+
+### D34 — Makefile로 진입점 통합
+- 선택: 루트에 `Makefile` 추가 (help/install/backend/frontend/test/clean)
+- 대안: 셸 스크립트, npm scripts at root, just(justfile)
+- 이유: Make는 macOS/Linux 기본 포함. 한 명령 `make install`로 두 스택 의존성 설치. `make help` 자동 문서화.
+- 영향 파일: `Makefile`, `README.md`, `backend/README.md`
+- 되돌리기: `Makefile` 삭제 + README에서 직접 명령 안내
+
+### D35 — uv.lock commit 포함
+- 선택: `uv.lock`을 git에 commit
+- 대안: gitignore 처리
+- 이유: 멤버마다 의존성 버전 통일 → 환경 차이로 인한 에러 회피. 워크숍 재현성 ↑.
+- 영향 파일: `.gitignore` (uv.lock 제외 안 함), `backend/uv.lock`
+- 되돌리기: `.gitignore`에 `uv.lock` 추가
+
+### D36 — 테스트 fixture SQLite StaticPool
+- 선택: `conftest.py`에서 `poolclass=StaticPool` 사용
+- 대안: 파일 기반 SQLite (tempfile)
+- 이유: in-memory SQLite는 연결마다 별도 DB → fixture에서 생성한 테이블을 라우터가 못 봄. StaticPool로 단일 연결 공유.
+- 영향 파일: `backend/tests/conftest.py`
+- 되돌리기: `poolclass` 제거 후 tempfile 기반으로 전환
+
+---
+
 ## 미해결/향후 검토
 
 이 워크숍이 끝나고 호스트가 다음 회차 또는 다음 도메인을 추가할 때 고려할 사항.

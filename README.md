@@ -32,11 +32,31 @@
 ## 사전 준비
 
 - **Claude Code** 최신 버전 ([설치 가이드](https://docs.claude.com/claude-code))
-- **Python 3.11+** (`backend/`)
-- **Node 20+** + **pnpm 또는 npm** (`frontend/`)
+- **Python 3.11+** + **uv** ([설치](https://docs.astral.sh/uv/getting-started/installation/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- **Node 20+** + **npm**
 - **GitHub CLI (`gh`)** — fork 및 PR 생성에 사용
+- **make** (macOS/Linux 기본 포함, Windows는 wsl 권장)
+
+설치 확인:
+```bash
+make check-tools
+```
 
 > Cursor/Codex 등 다른 도구 사용자는 본 README 맨 아래 *"Cursor 사용자 fallback"* 섹션 참조.
+
+## Quick Start (한 명령)
+
+```bash
+git clone <레포-URL>
+cd agentic-qa-practice
+make install          # 백엔드(uv sync) + 프론트엔드(npm install)
+
+# 두 터미널에서 따로 실행
+make backend          # http://localhost:8000
+make frontend         # http://localhost:5173
+```
+
+전체 명령 보기: `make help`
 
 ---
 
