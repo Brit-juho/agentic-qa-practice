@@ -139,9 +139,9 @@
 
 ## 함정의 *교묘함* 수준
 
-선택: **중간 수준**.
+선택: **중-중상 사이** (D31 참조).
 
-이유: 너무 명백하면 (보안 함정 옆에 `# TODO: 권한 체크 필요` 같은 주석) 멤버 학습 효과 ↓. 너무 교묘하면 시간 부족. *실제 PR에서 자주 보이는 자연스러운 누락* 수준으로 박음.
+기존 #1~#8은 *중간 수준*에서 박았으나 일부(#5/#6/#8)는 암묵적으로 중상. 추가 #9~#12는 *중상 수준*으로 박음. 평균은 *중-중상 사이*.
 
 ---
 
@@ -202,6 +202,59 @@
 - 이유: 비어있으면 너무 명백 / 잘못된 단언은 *다른 종류의 함정*. 누락이 가장 현실적.
 - 영향 파일: `backend/tests/test_rentals.py`
 - 정답 방향: 동시성, 권한, 경계 시간(overdue), 최대 연장 초과 케이스 추가
+
+---
+
+## 함정 #9~#12 (FE 균형 + 난이도 중상 업그레이드)
+
+호스트 피드백으로 FE 함정 4개 추가 (총 8 → 12). 4축 각 3개로 균형.
+
+### D27 — 함정 #9 보안: 에러 로깅에 민감 정보 노출
+- 위치: `frontend/src/api/client.ts` `handleError`
+- 형태: 에러 시 `console.error`로 status / headers 전체 / URL / 응답 body / **localStorage.userId** 출력. XSS와 결합 시 토큰 탈취 경로.
+- 난이도: 중상 (친절한 진단 로깅처럼 보임)
+- 정답 방향: 메시지만 출력 + 민감 키 마스킹 + 프로덕션에선 로깅 레벨 조절
+
+### D28 — 함정 #10 성능: 매 렌더 비싼 연산 + React 안티패턴
+- 위치: `frontend/src/pages/AssetList.tsx`
+- 형태: (1) `visible` 배열을 매 렌더마다 `filter().filter().sort()` 신규 생성, (2) `actions: { rent: () => ..., refresh: () => ... }` 매번 새 객체+함수, (3) `meta: { filters: { typeFilter, search } }` 매번 새 객체, (4) `key={index}` 사용
+- 난이도: 중상 (React 깊은 지식 필요)
+- 정답 방향: `useMemo`로 visible 캐싱, `useCallback`으로 함수 안정화, `key={asset.id}`, 자식 `React.memo`
+
+### D29 — 함정 #11 테스트: 인프라만 있고 테스트 0개
+- 위치: `frontend/tests/setup.ts` + `frontend/vitest.config.ts` (있음). `frontend/tests/*.test.tsx` (없음)
+- 형태: vitest + testing-library 설치 완료, 글로벌 셋업도 완료. 하지만 *.test.tsx 파일 0개. 커밋 메시지 "테스트 파일은 별도 PR에서" — 영원히 안 옴.
+- 난이도: 중상 (부재를 알아채야 함)
+- 정답 방향: 최소 AssetList / MyRentals / ReturnExtend 각 happy path 테스트 추가
+
+### D30 — 함정 #12 아키텍처: API 클라이언트에 비즈니스 로직 + 우회 fetch
+- 위치: `frontend/src/api/client.ts` + `frontend/src/pages/ReturnExtend.tsx`
+- 형태: (1) `fetchAssets`가 `retired` 필터 + 한글 정렬 *내부 수행* (도메인 로직), (2) `fetchActiveAssetsForUser`는 client.ts가 다른 client.ts 함수를 합성하며 권한 판단까지, (3) `ReturnExtend.tsx`는 client.ts 우회해서 `fetch(BASE + ...)` 직접 호출
+- 난이도: 중상 (정답이 한 가지 아님)
+- 정답 방향: client.ts는 *원시 API 호출만*, 비즈니스 로직은 별도 모듈 또는 selector. ReturnExtend.tsx의 누락된 `returnRental`/`extendRental`을 client.ts에 추가하고 사용
+
+### D31 — 난이도 정책: 중상으로 업그레이드
+- 선택: #9~#12는 *중상 수준*. 기존 #1~#8 중 #5/#6/#8은 *암묵적 중상*. 나머지 #1~#4/#7는 *중*.
+- 대안: 전체 중상으로 통일 (난이도 ↑ 시간 부족 위험)
+- 이유: 평균 *중-중상* 사이가 40분 안에 완주 가능한 한계. 모든 함정이 중상이면 시간 안에 못 끝남.
+- 영향 파일: 모든 함정 파일
+- 되돌리기: 함정을 더 명백하게 (주석/TODO 추가) 또는 더 교묘하게 (더 깊이 숨김)
+
+### D32 — 균형: BE 6 + FE 6 (4축 각 3개)
+- 선택: 함정 분포를 *축별로 균형*하게 + *영역별로 균형*하게
+- 대안: BE 위주 (현실적이지만 FE 리뷰어 일거리 적음)
+- 이유: 멤버가 어떤 분야 전문가든 *자기 도메인의 함정*을 잡을 거리 보장
+- 영향 파일: `frontend/*` 전부 + `backend/*` 일부
+- 분포 표:
+
+| 축 | Backend | Frontend |
+|---|---|---|
+| 보안 | #1 권한 | #2 XSS, #9 로깅 노출 |
+| 성능 | #3 N+1 | #4 useEffect, #10 비싼 렌더 |
+| 테스트 | #5 동시성, #6 overdue | #11 테스트 0개 |
+| 아키텍처 | #7 라우터 로직, #8 이중 상태 | #12 API 클라이언트 |
+
+`rentals.py`에 #1/#7/#8 3개 몰림은 *대여* 도메인의 핵심 라우터라 자연스러움. 다른 함정들은 분산됨.
 
 ---
 
