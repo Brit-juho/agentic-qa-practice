@@ -145,6 +145,66 @@
 
 ---
 
+## 구현 중 추가 결정
+
+### D19 — Frontend 디자인
+- 선택: inline styles (외부 CSS 없음)
+- 대안: CSS modules, Tailwind, styled-components
+- 이유: 워크숍 코드는 *리뷰 대상*이지 *디자인 학습*이 아님. inline style이 최소 의존성.
+- 영향 파일: `frontend/src/**/*.tsx`
+- 되돌리기: CSS 파일 추가 후 className 사용으로 마이그레이션.
+
+### D20 — Frontend 라우팅
+- 선택: react-router-dom v6
+- 대안: TanStack Router, 라우팅 없음
+- 이유: React 생태계 표준. 멤버 모두 익숙.
+- 영향 파일: `frontend/package.json`, `App.tsx`, `main.tsx`
+- 되돌리기: 라우팅 제거 후 conditional rendering.
+
+### D21 — 가짜 인증 자동 셋팅
+- 선택: 페이지 진입 시 `localStorage.userId = 'alice'` 자동 셋팅
+- 대안: 명시적 로그인 UI / 환경변수
+- 이유: 워크숍 단순화. 멤버가 *인증*에 시간 안 씀.
+- 영향 파일: `frontend/src/main.tsx`
+- 되돌리기: 해당 코드 제거 + 로그인 페이지 추가.
+
+### D22 — SQLite 파일 위치
+- 선택: `backend/rental.db` (gitignore 처리됨)
+- 대안: in-memory만 / `/tmp/`
+- 이유: 멤버가 dev 서버 실행 시 데이터 영속. 시드는 init_db에서 자동.
+- 영향 파일: `backend/app/db.py`, `.gitignore`
+- 되돌리기: `DATABASE_URL`을 `sqlite:///:memory:`로 변경.
+
+### D23 — 함정 #8 (이중 상태) 구체 구현
+- 선택: `return_rental`에서 `rental.returned_at` 갱신 + `asset.status = "available"` 갱신 *둘 다* 실행
+- 대안: Asset에 별도 status enum 추가하고 그쪽도 갱신
+- 이유: 가장 자연스럽고 멤버가 *왜 이게 문제인지* 직관적으로 봄. 한쪽 실패시 영구 불일치.
+- 영향 파일: `backend/app/routers/rentals.py` (return_rental)
+- 정답 방향: `asset.status`는 *유지보수* 같은 시스템 상태만, 대여 여부는 `Rental.returned_at`로만 판단
+
+### D24 — 함정 #7 (라우터 비즈니스 로직) 구체 구현
+- 선택: `extend_rental`의 최대 연장 기간 계산 + 검증 *전부* router 함수 안에서
+- 대안: services에 함수만 만들어두고 호출
+- 이유: 실제 PR에서 흔히 보이는 "급해서 라우터에 박은" 패턴. 자연스러움.
+- 영향 파일: `backend/app/routers/rentals.py` (extend_rental)
+- 정답 방향: `services/rental_service.py`에 `extend_rental` 추가하고 router에서 호출
+
+### D25 — 함정 #3 (N+1) 구체 구현
+- 선택: `list_assets_with_availability`에서 장비 루프 안에서 `Rental` 별도 쿼리
+- 대안: `joinedload` 사용, 단일 LEFT JOIN
+- 이유: 가장 흔한 ORM 안티패턴. 성능 리뷰어가 *명백히* 잡아야 함.
+- 영향 파일: `backend/app/routers/assets.py`
+- 정답 방향: `selectinload(Asset.rentals)` 또는 명시적 JOIN
+
+### D26 — 테스트 누락 함정의 *형태*
+- 선택: return/extend의 *해피 패스만* 테스트하고 엣지 케이스 부재
+- 대안: 테스트 파일 자체를 비움 / 잘못된 단언 작성
+- 이유: 비어있으면 너무 명백 / 잘못된 단언은 *다른 종류의 함정*. 누락이 가장 현실적.
+- 영향 파일: `backend/tests/test_rentals.py`
+- 정답 방향: 동시성, 권한, 경계 시간(overdue), 최대 연장 초과 케이스 추가
+
+---
+
 ## 미해결/향후 검토
 
 이 워크숍이 끝나고 호스트가 다음 회차 또는 다음 도메인을 추가할 때 고려할 사항.
