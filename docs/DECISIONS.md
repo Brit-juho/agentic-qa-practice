@@ -320,6 +320,15 @@
 - 영향 파일: `.claude/agents/consensus-synthesizer.md`
 - 되돌리기: 이전 4가지 버전 복귀
 
+### D44 — 책 프롬프트 *복사용 단일 파일*만 제공 (가이드 X, 챌린지만)
+- 선택: `prompts/book-prompts.md` 한 파일에 책 6단계 원문 + 한 단락 챌린지 ("그대로 쓰면 6~8/12 발견. 그 이상 노려라")
+- 대안:
+  - (A) 제공 안 함 → 멤버 진입 부담 ↑, 책 펴고 타이핑 시간 낭비
+  - (B) Before/After 진화 가이드 docs로 풍부하게 제공 → docs 비대 + 진화 *경로를 가르침* → 멤버 결과물 다양성 ↓ + 챌린지 ↓
+- 이유: 복사용 원문만 제공하고 *진화는 멤버 몫*으로 두는 게 워크숍 가치(=baseline 넘기)와 정렬. 챌린지 한 단락으로 *스스로 깊이 추구*하도록 밀어줌.
+- 영향 파일: `prompts/book-prompts.md` (신규, 단일)
+- 되돌리기: 해당 파일 삭제
+
 ### D43 — 위험 구역 자동 확장 (Smart Auto-Expansion) 도입
 - 선택: 리뷰어가 diff의 *변경 파일 종류*를 식별 후, 위험 구역(models / routers / services / auth / api client / config / 인터페이스 / 공통 유틸)에 해당하면 관련 파일을 Grep/Read로 자동 확장 검사
 - 대안:
