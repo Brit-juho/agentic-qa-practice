@@ -112,6 +112,8 @@ git checkout -b feat/review-<본인이름>   # 예: feat/review-woosung
 
 작성 가이드: [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) 와 [`docs/AGENT-TEMPLATE.md`](docs/AGENT-TEMPLATE.md) 참조.
 
+빠른 시작(복사용): [`prompts/book-prompts.md`](prompts/book-prompts.md) — 책 Tutorial 22 6단계 프롬프트 원문. 타이핑 시간 절약용 _출발점_ 이지 종착점이 아님. 그대로 쓰면 함정 일부만 잡히니 본인 도메인 경험으로 진화시킬 것.
+
 핵심 원칙: *자기 도메인 경험*을 녹여라. 책 그대로 베끼지 말 것. 결과물의 다양성이 산출물의 가치.
 
 ---
@@ -134,7 +136,7 @@ claude
 내부 동작: 0. _사전 점검_ — `.claude/agents/` 에 5개(샘플 2 + 자작 3)가 모두 있는지 확인.
 하나라도 빠지면 **무엇이 빠졌는지 안내하고 중단** (리뷰 진행 안 함). 다 있으면 진행.
 
-1. 리뷰 대상 브랜치 해석 — 인자로 받은 `feat/return-extend` 사용 (인자 생략 시 현재 브랜치 자동 감지)
+1. 리뷰 대상 브랜치 해석 — 인자로 받은 `feat/review-<이름>` 사용 (인자 생략 시 현재 브랜치 자동 감지)
 2. `git diff main...<대상>` + commit log + 파일 통계 수집
 3. `.claude/agents/` 안의 4개 리뷰어 병렬 발사 (Task 도구)
    - 각 리뷰어에 PR 컨텍스트 + 프로젝트 컨벤션(CLAUDE.md, ARCHITECTURE.md) 전달
@@ -306,6 +308,7 @@ agentic-qa-practice/
 ├── backend/         # FastAPI (장비 대여 API)
 ├── frontend/        # React + TypeScript (대여 UI)
 ├── docs/            # 에이전트 가이드, 아키텍처
+├── prompts/         # 복사용 책 프롬프트 (에이전트 작성 시작점)
 └── outputs/         # 멤버 리뷰 리포트 저장
 ```
 
