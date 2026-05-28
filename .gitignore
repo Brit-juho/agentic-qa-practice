@@ -46,3 +46,4 @@ dist/
 # 호스트 전용 (멤버에게 스포일러)
 docs/DECISIONS.md
 docs/WORKSHOP-FLOW.md
+docs/TRAP-INVENTORY.md
