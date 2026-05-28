@@ -20,13 +20,13 @@
 2. feat/return-extend 체크아웃 → PR diff 확인 (feat/return-extend → main)
 3. 자기 작업 브랜치 생성 (feat/review-<본인이름>)
 4. 자기 에이전트 3개 작성 (performance-analyst, test-coverage-reviewer, architecture-guardian)
-5. /consensus-review feat/return-extend 실행 (에이전트 빠지면 경고 후 중단)
+5. /consensus-review 실행 (에이전트 빠지면 경고 후 중단) 타겟 브랜치[본인 브랜치]
 6. outputs/unified-review-<이름>.md 생성
-7. commit → 자기 fork push → 메인 레포에 PR  ← 여기까지 1차
+7. commit → push → 메인 레포에 PR  ← 여기까지 1차
 8. (시간 여유 시) 2차 — 호스트가 공유한 함정 답안지로 자가 채점
 
 [모임 후]
-호스트가 누적된 PR들에서 좋은 패턴 추출 → 포너즈 표준 에이전트 카탈로그 작성
+호스트가 누적된 PR들에서 좋은 패턴 종합 추출 후 → 포너즈 표준 에이전트 작성해서 올림
 ```
 
 ---
@@ -34,7 +34,7 @@
 ## 사전 준비
 
 - **Claude Code** 최신 버전 ([설치 가이드](https://docs.claude.com/claude-code))
-- **Python 3.11+** + **uv** ([설치](https://docs.astral.sh/uv/getting-started/installation/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- **Python 3.11+** + **uv** ([설치](https://docs.astral.sh/uv/getting-started/installation/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`) # 파이썬 통합 환경 관리도구 툴
 - **Node 20+** + **npm**
 - **GitHub CLI (`gh`)** — fork 및 PR 생성에 사용
 - **make** (macOS/Linux 기본 포함, Windows는 wsl 권장)
@@ -63,21 +63,15 @@ make frontend         # http://localhost:5173
 
 ---
 
-## Step 1 — Fork & Clone
+## Step 1 — Clone (collaborator 방식)
 
-```bash
-# 메인 레포 fork
-gh repo fork <메인레포-URL> --clone --remote
+> 이 워크숍은 **fork 없이** 메인 레포를 직접 쓴다. 시작 전 호스트에게 **collaborator 초대**를 받아 수락해야 한다 (위 "호스트 사전 준비" 참조).
 
-# 또는 GitHub UI에서 fork 후
-git clone https://github.com/<your-id>/agentic-qa-practice.git
+````bash # 메인 레포를 직접 clone (fork 아님)
+git clone https://github.com/woosung-dev/agentic-qa-practice.git
 cd agentic-qa-practice
 
-# 메인 레포를 upstream으로 추가 (PR 보낼 곳)
-git remote add upstream <메인레포-URL>
-git fetch upstream
-```
-
+▎ git push가 403으로 막히면 = 아직 collaborator가 아니라는 뜻. 호스트에게 초대를 요청하세요.
 ---
 
 ## Step 2 — 리뷰 대상 PR diff 확인
@@ -89,7 +83,7 @@ git checkout feat/return-extend
 # diff 한 번 훑어보기
 git diff main...feat/return-extend --stat
 git diff main...feat/return-extend
-```
+````
 
 읽으면서 _"여기 문제 있어 보이는데?"_ 부분을 머릿속에 기록. 자기 에이전트가 그 문제들을 잡아내야 한다.
 
